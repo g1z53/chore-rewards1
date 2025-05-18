@@ -32,27 +32,15 @@
       padding: 10px;
       border-radius: 5px;
     }
-    .progress-container {
-      width: 100%;
-      background: #ccc;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .progress-bar {
-      height: 20px;
-      background: #4caf50;
-      width: 0%;
-      transition: width 0.3s;
+    .done {
+      text-decoration: line-through;
+      color: gray;
     }
   </style>
 </head>
 <body>
   <h1>Chore Rewards App</h1>
-  <div class="progress-container">
-    <div id="progress" class="progress-bar"></div>
-  </div>
-  <p>Total Points: <span id="totalPoints">0</span></p>
+
   <p>Available Points: <span id="availablePoints">0</span></p>
 
   <div class="tabs">
@@ -85,7 +73,6 @@
   <script>
     let data = {
       points: 0,
-      totalPoints: 0,
       chores: [],
       rewards: [],
       inventory: []
@@ -104,14 +91,14 @@
 
     function update() {
       document.getElementById("availablePoints").innerText = data.points;
-      document.getElementById("totalPoints").innerText = data.totalPoints;
 
       let choreList = document.getElementById("choreList");
       choreList.innerHTML = "";
       data.chores.forEach((c, i) => {
         let li = document.createElement("li");
+        li.className = c.done ? "done" : "";
         li.innerHTML = `${c.name} (+${c.points} pts)
-          <button onclick="completeChore(${i})">Done</button>
+          ${c.done ? '' : `<button onclick="completeChore(${i})">Done</button>`}
           <button onclick="deleteChore(${i})">❌ Delete</button>`;
         choreList.appendChild(li);
       });
@@ -134,13 +121,6 @@
           <button onclick="removeInventory(${i})">Remove</button>`;
         inventoryList.appendChild(li);
       });
-
-      updateProgressBar();
-    }
-
-    function updateProgressBar() {
-      let percent = data.totalPoints === 0 ? 0 : (data.points / data.totalPoints) * 100;
-      document.getElementById("progress").style.width = `${percent}%`;
     }
 
     function showTab(tabId) {
@@ -152,17 +132,17 @@
       let name = document.getElementById("choreName").value.trim();
       let points = parseInt(document.getElementById("chorePoints").value);
       if (name && !isNaN(points)) {
-        data.chores.push({ name, points });
+        data.chores.push({ name, points, done: false });
         save();
       }
     }
 
     function completeChore(index) {
-      let points = data.chores[index].points;
-      data.points += points;
-      data.totalPoints += points;
-      data.chores.splice(index, 1);
-      save();
+      if (!data.chores[index].done) {
+        data.points += data.chores[index].points;
+        data.chores[index].done = true;
+        save();
+      }
     }
 
     function deleteChore(index) {
